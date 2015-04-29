@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body { font: 12px Arial;}
+
+path { 
+	stroke: steelblue;
+	stroke-width: 2;
+	fill: none;
+}
+
+.axis path,
+.axis line {
+	fill: none;
+	stroke: grey;
+	stroke-width: 1;
+	shape-rendering: crispEdges;
+}
+
+</style>
+<body>
+<script type="text/javascript" src="../d3/d3.v3.js"></script>
+
+<script>
+
+var	margin = {top: 30, right: 100, bottom: 150, left: 50},
+	width = 800 - margin.left - margin.right,
+	height = 450 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal().rangeRoundBands([0, width], 1);	
+var	y = d3.scale.linear().range([height, 0]);
+
+var xAxis = d3.svg.axis()
+              .scale(x)
+              .orient("bottom");
+
+var	yAxis = d3.svg.axis().scale(y)
+	.orient("left").ticks(5);
+
+var	valueline = d3.svg.line()
+	.x(function(d) { return x(d.year); })
+	.y(function(d) { return y(d.with_helmet); });
+	
+var	valueline2 = d3.svg.line()
+	.x(function(d) { return x(d.year); })
+	.y(function(d) { return y(d.no_helmet); });
+  
+var	svg = d3.select("body")
+	        .append("svg")
+	          .attr("width", width + margin.left + margin.right)
+	          .attr("height", height + margin.top + margin.bottom)
+         	.append("g")
+	          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// Get the data
+d3.csv("data.csv", function(error, data) {
+	data.forEach(function(d, i) {
+		d.year = d.year;
+		d.with_helmet = +d.with_helmet;
+		d.no_helmet = +d.no_helmet;
+	});
+
+	// Scale the range of the data
+	x.domain(data.map(function(d) { return d.year; }));
+	y.domain([0, 100]);
+	
+	// Add the value line1 path.
+	svg.append("path")		
+		 .attr("class", "line")
+		 .attr("d", valueline(data));
+
+	// Add the value line2 path.
+	svg.append("path")		
+		 .attr("class", "line")
+		 .style("stroke", "red")
+		 .attr("d", valueline2(data));
+		 
+	// Add the X Axis
+	svg.append("g")			
+		 .attr("class", "x axis")
+		 .attr("transform", "translate(0," + height + ")")
+		 .call(xAxis)
+    .selectAll("text")  
+        .style("text-anchor", "end")
+         .attr("dx", "-.8em")
+         .attr("dy", ".15em")
+         .attr("transform", function(d) { return "rotate(-65)" });
+		 
+	// Add the Y Axis
+	svg.append("g")			
+	     .attr("class", "y axis")
+		 .call(yAxis);
+
+	svg.append("text")
+		 .attr("transform", "translate(" + (width) + "," + y(data[0].no_helmet) + ")")
+		 .attr("dy", ".35em")
+		 .attr("text-anchor", "start")
+		.style("fill", "red")
+		 .text("no_helmet");
+
+	svg.append("text")
+		 .attr("transform", "translate(" + (width) + "," + y(data[0].with_helmet) + ")")
+		 .attr("dy", ".35em")
+		 .attr("text-anchor", "start")
+		.style("fill", "steelblue")
+		 .text("with_helmet");
+
+});
+
+</script>
+</body>
